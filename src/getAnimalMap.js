@@ -1,92 +1,111 @@
 const data = require('../data/zoo_data');
 
 const { species } = data;
+/* filtra animais por localizacao */
+const getAnimalsLocation = (param) => {
+  const response = species.filter((e) => e.location.includes(param)).map((animal) => animal.name);
+  return response;
+};
 
-const arrayRegions = [
-  'NE',
-  'NW',
-  'SE',
-  'SW',
-];
-function onlySex(animalsRegion, sex) {
-  const animalResidents = animalsRegion
-    .map((specie) => species.filter((animal) => (animal.name === specie))
-      .map((element) => element.residents.filter((resident) => (resident.sex === sex))
-        .map((getName) => getName.name)));
-  return animalResidents;
-}
+/* filtra animais por nome */
+const getAnimalsName = (param) => {
+  const getAnimal = species.filter((e) => e.name === param)[0].residents;
+  const getNames = getAnimal.map((e) => e.name);
+  return getNames;
+};
 
-function onlySorted(animalsRegion) {
-  const animalResidents = animalsRegion
-    .map((specie) => species.filter((animal) => (animal.name === specie))
-      .map((element) => element.residents.map((resident) => resident.name).sort()));
-  return animalResidents;
-}
+/* filtra animais por sexo */
+const getAnimalsSex = (param, sex) => {
+  const getAnimal = species.filter((e) => e.name === param)[0].residents;
+  const getSex = getAnimal.filter((e) => e.sex === sex);
+  const getNames = getSex.map((e) => e.name);
+  return getNames;
+};
 
-function sexAndSorted(animalsRegion, sex) {
-  const animalResidents = animalsRegion
-    .map((specie) => species.filter((animal) => (animal.name === specie))
-      .map((element) => element.residents.filter((resident) => (resident.sex === sex))
-        .map((elementToSort) => elementToSort.name).sort()));
-  return animalResidents;
-}
+/* cria o objeto sem parametros */
+const categorizedAnimals = () => {
+  const response = {
+    NE: getAnimalsLocation('NE'),
+    NW: getAnimalsLocation('NW'),
+    SE: getAnimalsLocation('SE'),
+    SW: getAnimalsLocation('SW'),
+  };
+  return response;
+};
 
-function noSexNoSorted(animalsRegion) {
-  const animalResidents = animalsRegion
-    .map((specie) => species.filter((animal) => (animal.name === specie))
-      .map((element) => element.residents.map((resident) => resident.name)));
-  return animalResidents;
-}
+/* Busca animais de todos os generos */
+const animalsAllGenerousNoSort = () => {
+  const response = {
+    NE: getAnimalsLocation('NE').map((e) => ({ [e]: getAnimalsName(e) })),
+    NW: getAnimalsLocation('NW').map((e) => ({ [e]: getAnimalsName(e) })),
+    SE: getAnimalsLocation('SE').map((e) => ({ [e]: getAnimalsName(e) })),
+    SW: getAnimalsLocation('SW').map((e) => ({ [e]: getAnimalsName(e) })),
+  };
+  return response;
+};
 
-function verifyMethod(animalsRegion, sex, sorted) {
-  if (sex && sorted) { return sexAndSorted(animalsRegion, sex); }
-  if (sex) { return onlySex(animalsRegion, sex); }
-  if (sorted) { return onlySorted(animalsRegion); }
-  return noSexNoSorted(animalsRegion);
-}
+/* Busca animais de todos os generos e ordena */
+const animalsAllGenerousSort = () => {
+  const response = {
+    NE: getAnimalsLocation('NE').map((e) => ({ [e]: getAnimalsName(e).sort() })),
+    NW: getAnimalsLocation('NW').map((e) => ({ [e]: getAnimalsName(e).sort() })),
+    SE: getAnimalsLocation('SE').map((e) => ({ [e]: getAnimalsName(e).sort() })),
+    SW: getAnimalsLocation('SW').map((e) => ({ [e]: getAnimalsName(e).sort() })),
+  };
+  return response;
+};
 
-function getNames(region, sex, sorted) {
-  const animalsRegion = species.filter((animal) => (animal.location === region))
-    .map((filteredAnimal) => filteredAnimal.name);
-  const animalResidents = verifyMethod(animalsRegion, sex, sorted);
-  const array = [];
-  for (let index = 0; index < animalsRegion.length; index += 1) {
-    const animalData = animalResidents[index].reduce((resident) => resident);
-    const objAnimal = {
-      [animalsRegion[index]]: animalData,
-    };
-    array[index] = objAnimal;
+/* Busca animais por sexo */
+const getAnimalBySexNoSort = (sex) => {
+  const response = {
+    NE: getAnimalsLocation('NE').map((e) => ({ [e]: getAnimalsSex(e, sex) })),
+    NW: getAnimalsLocation('NW').map((e) => ({ [e]: getAnimalsSex(e, sex) })),
+    SE: getAnimalsLocation('SE').map((e) => ({ [e]: getAnimalsSex(e, sex) })),
+    SW: getAnimalsLocation('SW').map((e) => ({ [e]: getAnimalsSex(e, sex) })),
+  };
+  return response;
+};
+/* Busca animais por sexo e ordena */
+const getAnimalBySexSort = (sex) => {
+  const response = {
+    NE: getAnimalsLocation('NE').map((e) => ({ [e]: getAnimalsSex(e, sex).sort() })),
+    NW: getAnimalsLocation('NW').map((e) => ({ [e]: getAnimalsSex(e, sex).sort() })),
+    SE: getAnimalsLocation('SE').map((e) => ({ [e]: getAnimalsSex(e, sex).sort() })),
+    SW: getAnimalsLocation('SW').map((e) => ({ [e]: getAnimalsSex(e, sex).sort() })),
+  };
+  return response;
+};
+
+/* se receber param sorted ordena o nome dos animais por sexo, se nao receber retorna os animais por sexo sem ordenar */
+const animalSex = (sex, sorted) => {
+  if (!sorted && sex) {
+    return getAnimalBySexNoSort(sex);
   }
-  return array;
-}
-
-function createAnimalsByName(sex, sorted) {
-  const obj = {};
-  for (let index = 0; index < arrayRegions.length; index += 1) {
-    const region = arrayRegions[index];
-    obj[region] = getNames(region, sex, sorted);
+  if (sorted && sex) {
+    return getAnimalBySexSort(sex);
   }
-  return obj;
-}
+};
 
-function createAnimalsNoName() {
-  const arrayAnimalsRegions = {};
-  arrayRegions.forEach((region) => {
-    const arrayAnimalsData = species.filter((animal) => (region === animal.location));
-    arrayAnimalsRegions[region] = arrayAnimalsData.map((eachAnimal) => eachAnimal.name);
-  });
-  return arrayAnimalsRegions;
-}
+
+const verify = (sex, sort) => {
+  if (sex) {
+    return animalSex(sex, sort);
+  }
+  if (!sex && sort) {
+    return animalsAllGenerousSort();
+  }
+  return animalsAllGenerousNoSort();
+};
 
 function getAnimalMap(options) {
-  const animalLocationNoName = createAnimalsNoName();
-  if (!options) { return animalLocationNoName; }
-  const { includeNames, sex, sorted } = options;
-  if (includeNames) {
-    const animalLocationByName = createAnimalsByName(sex, sorted);
-    return animalLocationByName;
+  if (!options || !options.includeNames) {
+    return categorizedAnimals();
   }
-  return animalLocationNoName;
+  const { includeNames, sex, sorted } = options;
+  if (includeNames === true) {
+    return verify(sex, sorted);
+  }
+  return categorizedAnimals();
 }
 
 console.log(getAnimalMap({ includeNames: true }));
